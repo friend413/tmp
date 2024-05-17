@@ -1,0 +1,35 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/light-wallet/node_modules
+/light-wallet/.pnp
+/light-wallet/.pnp.js
+
+# testing
+/light-wallet/coverage
+
+
+
+# misc
+/light-wallet/.DS_Store
+/light-wallet/.env.local
+/light-wallet/.env.development.local
+/light-wallet/.env.test.local
+/light-wallet/.env.production.local
+
+/light-wallet/npm-debug.log*
+/light-wallet/yarn-debug.log*
+/light-wallet/yarn-error.log*
+
+/light-wallet/*.idea
+/light-wallet/.idea
+/light-wallet/webstorm.config.js
+
+# Editor directories and files
+/light-wallet/.idea
+/light-wallet/.vscode
+/light-wallet/*.suo
+/light-wallet/*.ntvs*
+/light-wallet/*.njsproj
+/light-wallet/*.sln
+/light-wallet/*.zip
