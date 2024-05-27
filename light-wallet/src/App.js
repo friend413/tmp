@@ -1,5 +1,5 @@
 import "./App.less";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { InitAPI, Common, defaultConfig } from "cess-js-sdk-frontend";
 import { sleep } from "./utils/common";
 import store from "./utils/store";
@@ -22,15 +22,9 @@ import { mainnet } from "viem/chains";
 
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccount, useWalletClient, useFeeData, erc20ABI, useContractWrite, useBalance } from "wagmi";
-import ReactBodymovin from "react-bodymovin";
-// import Webcam from "react-webcam";
-
-import animation from "./utils/data/bodymovin-animation.json";
-import CamModal from "./components/CamModal";
-import Camera from "./components/Camera";
 
 import { useWebcamContext } from "./hooks/useWebcam";
-import { WebcamProvider } from "./context/webcam";
+import CamModal from "./components/comeraModal";
 let unsubBalance = "";
 let sdk = null;
 let inputValue = {
@@ -65,74 +59,34 @@ function App() {
 	const [customRPC, setCustomRPC] = useState("");
 	const [customRPCLoading, setCustomRPCLoading] = useState(false);
 	const [isWebCamModalOpen, setIsWebCamModalOpen] = useState(false);
+	const { setWebcamStarted, WebcamStarted } = useWebcamContext();
 
-	const { setWebcamStarted, WebCamRef } = useWebcamContext();
-	const [fileList, setFileList] = useState([]);
 	const evmAccount = useAccount();
-	const webcamRef = useRef(null);
-	const videoConstraints = {
-		width: 540,
-		facingMode: "environment"
-	};
-	const bodymovinOptions = {
-		loop: true,
-		autoplay: true,
-		prerender: true,
-		animationData: animation
-	};
-	const onUserMedia = e => {
-		console.log(e);
-	};
 
 	const onClick = e => {
 		setCurrent(e);
 		setBoxTitle(e);
 	};
-	const loadModels = async () => {
-		try {
-			const MODEL_URL = "./model";
-			await Promise.all([
-				faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL)
-				// faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-				// faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-				// faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
-			]);
-			console.log("Models loaded successfully");
-		} catch (error) {
-			console.error("Error loading models:", error);
-		}
-	};
-
 	useEffect(() => {
-		loadModels();
+		// let url = store.get("custom-node");
+		// if (url) {
+		// 	setCustomRPC(url);
+		// }
+		// init(url);
+		// autoLogin();
+		// historyTimeout = setInterval(function () {
+		// 	let addr = store.get("addr");
+		// 	if (addr && accout && accout.address) {
+		// 		loadHistoryList(addr);
+		// 	}
+		// }, 5000);
+		// return () => {
+		// 	clearInterval(historyTimeout);
+		// 	if (unsubBalance) {
+		// 		unsubBalance();
+		// 	}
+		// };
 	}, []);
-	useEffect(() => {
-		let url = store.get("custom-node");
-		if (url) {
-			setCustomRPC(url);
-		}
-		init(url);
-		autoLogin();
-		historyTimeout = setInterval(function () {
-			let addr = store.get("addr");
-			if (addr && accout && accout.address) {
-				loadHistoryList(addr);
-			}
-		}, 5000);
-
-		// setTimeout(() => {
-		// 	onBodymovin();
-		// }, 3000);
-
-		return () => {
-			clearInterval(historyTimeout);
-			if (unsubBalance) {
-				unsubBalance();
-			}
-		};
-	}, []);
-
-	// const onBodymovin = () => {};
 	const init = async url => {
 		setConnectStatus("connecting...");
 		try {
@@ -499,35 +453,19 @@ function App() {
 			antdHelper.alertError("Connect failed");
 		}
 	};
-
 	const handleModalOpen = () => {
-		setWebcamStarted(true);
+		// setWebcamStarted(true);
 		setIsWebCamModalOpen(true);
 	};
 	const handleModalClose = () => {
 		setWebcamStarted(false);
+
 		setIsWebCamModalOpen(false);
 	};
 
-	const captureImage = () => {
-		const imageSrc = WebCamRef.getScreenshot();
-		const uuid = crypto.randomUUID();
-		setFileList([
-			...fileList,
-			{
-				uid: uuid,
-				name: uuid + ".png",
-				status: "done",
-				url: imageSrc
-			}
-		]);
-		handleModalClose();
-	};
-
-	const onPlay = () => {
-		return "";
-	};
-
+	useEffect(() => {
+		console.log("app webCamStart", WebcamStarted);
+	}, [WebcamStarted]);
 	return (
 		<div className="App">
 			<a className="header" href="/">
@@ -599,10 +537,23 @@ function App() {
 						<label>{loading == "login-polkdot" ? connectStatus : "Polkadot Wallet"}</label>
 					</div>
 				</div>
-				<div className="webcam-box" onClick={handleModalOpen}>
-					<div className="title">Connect to web camera</div>
+				<div className="rpc-custom-box">
+					<div className="line-1" onClick={handleModalOpen}>
+						Connect to camera
+					</div>
+					<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} />
 				</div>
-				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} />
+				<div className="rpc-custom-box">
+					<div className="line-1" onClick={() => setShowCustomRPC(!showCustomRPC)}>
+						{" "}
+						CustomRPC {showCustomRPC ? "-" : "+"}
+					</div>
+					<div className={showCustomRPC ? "line-2" : "none"}>
+						<input value={customRPC} onInput={onInputNodeRPC} onChange={onInputNodeRPC} type="text" placeholder="wss://" />
+						<label onClick={() => setCustomRPC("wss://testnet-rpc1.cess.cloud/ws/")}>use default RPC</label>
+					</div>
+					<div className={showCustomRPC ? "line-3" : "none"}>{customRPCLoading ? <label>Connecting...</label> : <span onClick={onReConnect}>Connect</span>}</div>
+				</div>
 			</div>
 			<div className={current == "dashboard" ? "dashboard" : "none"}>
 				<div className="b1">
