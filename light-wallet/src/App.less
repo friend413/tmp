@@ -800,10 +800,61 @@ body {
 	}
 }
 
-#face_ani {
+.cam-custom-box {
+	position: relative;
+}
+
+#inputVideo {
+	width: 640px;
+	height: 480px;
+	z-index: 1;
+	background-color: #808080;
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
+}
+
+.overlay-container {
 	position: absolute;
+	top: 0;
+	z-index: 2;
+}
+
+#overlay {
+	width: 640px;
+	height: 480px;
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
+}
+
+#face_ani {
 	z-index: 3;
-	width: 480px;
-	height: 640px;
+	height: 480px;
 	opacity: 0.4;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
+}
+
+// #face_ani {
+// 	position: absolute;
+// 	top: 0;
+// 	z-index: 3;
+// 	width: 480px;
+// 	height: 640px;
+// 	opacity: 0.4;
+// }
+
+.react-bodymovin-container {
+	width: 100%;
+	margin: auto;
+}
+
+
+@media (min-width: 768px) {
+    .justify-content-md-center {
+        -ms-flex-pack: center !important;
+        justify-content: center !important;
+    }
 }

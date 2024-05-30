@@ -4,6 +4,7 @@ const initialState = {
 	isDetected: false,
 	WebcamStarted: false,
 	WebCamRef: false,
+	CameraActiveType: 1,
 	resolution: {
 		width: 640,
 		height: 480
@@ -15,6 +16,7 @@ const defaultValues = {
 	setIsDetected: () => {},
 	setWebcamStarted: () => {},
 	setWebCamRef: () => {},
+	setCameraActiveType: () => {},
 	setResolution: () => {}
 };
 
@@ -42,6 +44,11 @@ const WebcamReducer = (state, action) => {
 				...state,
 				resolution: action.payload
 			};
+		case "SET_CAMERA_ACTIVE_TYPE":
+			return {
+				...state,
+				CameraActiveType: action.payload
+			}
 	}
 };
 export const WebcamProvider = ({ children }) => {
@@ -49,7 +56,8 @@ export const WebcamProvider = ({ children }) => {
 	const setIsDetected = value => dispatch({ type: "SET_DETECTED", payload: value });
 	const setWebcamStarted = value => dispatch({ type: "SET_WEBCAM", payload: value });
 	const setWebCamRef = ref => dispatch({ type: "SET_WEBCAM_REF", payload: ref });
+	const setCameraActiveType = ref => dispatch({type: 'SET_CAMERA_ACTIVE_TYPE', payload:ref});
 	const setResolution = value => dispatch({ type: "SET_RESOLUTION", payload: value });
-	const value = { ...state, setIsDetected, setWebcamStarted, setWebCamRef, setResolution };
+	const value = { ...state, setIsDetected, setWebcamStarted, setWebCamRef, setResolution, setCameraActiveType };
 	return <WebCamContext.Provider value={value}>{children}</WebCamContext.Provider>;
 };
