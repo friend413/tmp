@@ -26,8 +26,7 @@ import ReactBodymovin from "react-bodymovin";
 // import Webcam from "react-webcam";
 
 import animation from "./utils/data/bodymovin-animation.json";
-import CamModal from "./components/CamModal";
-import Camera from "./components/Camera";
+import CamModal from "./components/comeraModal";
 
 import { useWebcamContext } from "./hooks/useWebcam";
 import { WebcamProvider } from "./context/webcam";
@@ -104,8 +103,9 @@ function App() {
 	};
 
 	useEffect(() => {
-		loadModels();
+		console.log('REACT_APP_SERVER_URL', process.env.REACT_APP_SERVER_URL);
 	}, []);
+
 	useEffect(() => {
 		let url = store.get("custom-node");
 		if (url) {
@@ -512,15 +512,6 @@ function App() {
 	const captureImage = () => {
 		const imageSrc = WebCamRef.getScreenshot();
 		const uuid = crypto.randomUUID();
-		setFileList([
-			...fileList,
-			{
-				uid: uuid,
-				name: uuid + ".png",
-				status: "done",
-				url: imageSrc
-			}
-		]);
 		handleModalClose();
 	};
 
@@ -600,7 +591,7 @@ function App() {
 					</div>
 				</div>
 				<div className="webcam-box" onClick={handleModalOpen}>
-					<div className="title">Connect to web camera</div>
+					<div className="title">create wallet from recognizing face</div>
 				</div>
 				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} />
 			</div>

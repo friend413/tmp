@@ -80,8 +80,7 @@ body {
 }
 
 .login {
-	// width: 600px;
-	width: 800px;
+	width: 600px;
 	display: block;
 	overflow: hidden;
 	margin: 130px auto 0;
@@ -801,8 +800,8 @@ body {
 	}
 }
 
-.webcam-box:hover {
-	cursor: pointer;
+.cam-custom-box {
+	position: relative;
 }
 
 #inputVideo {
@@ -813,44 +812,49 @@ body {
 	-webkit-transform: scaleX(-1);
 	transform: scaleX(-1);
 }
-.canvas_container {
+
+.overlay-container {
 	position: absolute;
+	top: 0;
 	z-index: 2;
-	#overlay {
-		width: 640px;
-		height: 480px;
-		-webkit-transform: scaleX(-1);
-		transform: scaleX(-1);
-	}
+}
+
+#overlay {
+	width: 640px;
+	height: 480px;
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
 }
 
 #face_ani {
-	position: absolute;
 	z-index: 3;
-	max-width: 640px;
-	// height: 480px;
+	height: 480px;
 	opacity: 0.4;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
 }
 
-.row {
-	display: -ms-flexbox;
-	display: flex;
-	-ms-flex-wrap: wrap;
-	flex-wrap: wrap;
-	margin-right: -15px;
-	margin-left: -15px;
+// #face_ani {
+// 	position: absolute;
+// 	top: 0;
+// 	z-index: 3;
+// 	width: 480px;
+// 	height: 640px;
+// 	opacity: 0.4;
+// }
+
+.react-bodymovin-container {
+	width: 100%;
+	margin: auto;
 }
+
 
 @media (min-width: 768px) {
-	.justify-content-md-center {
-		-ms-flex-pack: center !important;
-		justify-content: center !important;
-	}
-}
-#vid_container {
-	display: flex;
-}
-.react-bodymovin-container {
-	width: 640px;
-	height: 480px;
+    .justify-content-md-center {
+        -ms-flex-pack: center !important;
+        justify-content: center !important;
+    }
 }

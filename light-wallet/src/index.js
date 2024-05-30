@@ -1,5 +1,5 @@
 import { BrowserRouter } from "react-router-dom";
-import '@rainbow-me/rainbowkit/styles.css';
+import "@rainbow-me/rainbowkit/styles.css";
 import "react-app-polyfill/ie9";
 import "react-app-polyfill/stable";
 import { ConfigProvider } from "antd";
@@ -10,24 +10,16 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import enGB from "antd/lib/locale/en_GB";
 
-import { getDefaultWallets, connectorsForWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { publicProvider } from 'wagmi/providers/public';
-import {
-	arbitrum,
-	base,
-	mainnet,
-	optimism,
-	polygon,
-	sepolia,
-	zora,
-	goerli
-} from 'wagmi/chains';
-import { metaMaskWallet, okxWallet, tokenPocketWallet, imTokenWallet, coinbaseWallet, bitKeepWallet } from '@rainbow-me/rainbowkit/wallets';
+import { getDefaultWallets, connectorsForWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { configureChains, createConfig, WagmiConfig } from "wagmi";
+import { publicProvider } from "wagmi/providers/public";
+import { WebcamProvider } from "./context/webcam.jsx";
 
+import { arbitrum, base, mainnet, optimism, polygon, sepolia, zora, goerli } from "wagmi/chains";
+import { metaMaskWallet, okxWallet, tokenPocketWallet, imTokenWallet, coinbaseWallet, bitKeepWallet } from "@rainbow-me/rainbowkit/wallets";
 
-const projectId = '1f3ddfd28be419ce4cbd99c03397f94d';
-const appName = 'test';
+const projectId = "1f3ddfd28be419ce4cbd99c03397f94d";
+const appName = "test";
 
 // const { chains, publicClient, webSocketPublicClient } = configureChains(
 //   [
@@ -42,12 +34,7 @@ const appName = 'test';
 //   ],
 //   [publicProvider()]
 // );
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-	[arbitrum],
-	[publicProvider()]
-);
-
-
+const { chains, publicClient, webSocketPublicClient } = configureChains([arbitrum], [publicProvider()]);
 
 // const { connectors } = getDefaultWallets({
 //   appName: 'test',
@@ -57,7 +44,7 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 const connectors2 = connectorsForWallets([
 	{
-		groupName: 'Recommended',
+		groupName: "Recommended",
 		wallets: [
 			metaMaskWallet({ projectId, chains }),
 			coinbaseWallet({ appName, chains }),
@@ -65,24 +52,24 @@ const connectors2 = connectorsForWallets([
 			imTokenWallet({ projectId, chains }),
 			tokenPocketWallet({ projectId, chains }),
 			bitKeepWallet({ projectId, chains })
-		],
-	},
+		]
+	}
 ]);
 
 const wagmiConfig = createConfig({
 	autoConnect: true,
 	connectors: connectors2,
 	publicClient,
-	webSocketPublicClient,
+	webSocketPublicClient
 });
-
-
 
 ReactDOM.render(
 	<ConfigProvider locale={enGB}>
 		<WagmiConfig config={wagmiConfig}>
 			<RainbowKitProvider chains={chains} locale="en-US" modalSize="compact">
-				<App />
+				<WebcamProvider>
+					<App />
+				</WebcamProvider>
 			</RainbowKitProvider>
 		</WagmiConfig>
 	</ConfigProvider>,
@@ -93,4 +80,3 @@ ReactDOM.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
-
