@@ -87,23 +87,9 @@ function App() {
 		setCurrent(e);
 		setBoxTitle(e);
 	};
-	const loadModels = async () => {
-		try {
-			const MODEL_URL = "./model";
-			await Promise.all([
-				faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL)
-				// faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-				// faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-				// faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
-			]);
-			console.log("Models loaded successfully");
-		} catch (error) {
-			console.error("Error loading models:", error);
-		}
-	};
 
 	useEffect(() => {
-		console.log('REACT_APP_SERVER_URL', process.env.REACT_APP_SERVER_URL);
+		console.log("REACT_APP_SERVER_URL", process.env.REACT_APP_SERVER_URL);
 	}, []);
 
 	useEffect(() => {
@@ -245,6 +231,34 @@ function App() {
 			setLoading(null);
 		}
 	};
+
+	const createWalletTestFromFace = () => {
+		let addrFromFace = "cx000000000000000000";
+		let subBalanceVal = 12321312312;
+		let accounts = {};
+		let acc = {};
+		acc.address = addrFromFace;
+		setAccout(acc);
+		setAccouts([acc]);
+		setConnectStatus("login success");
+		setAccout(acc);
+		setCurrent("dashboard");
+		setAccountType("face");
+
+		// subBalance(subBalanceVal);
+		//temp subbalance
+		setAvailable(0);
+		setStaking(0);
+		setNominate(0);
+		setBalance(0);
+		console.log("showAddressType", showAddressType);
+		//end
+		pageIndex = 1;
+		loadHistoryList(acc.address);
+		store.set("accountType", "face");
+		store.set("addr", addrFromFace);
+	};
+
 	const subBalance = async address => {
 		console.log("start sub banlace.");
 		if (unsubBalance) {
@@ -593,6 +607,9 @@ function App() {
 				<div className="webcam-box" onClick={handleModalOpen}>
 					<div className="title">create wallet from recognizing face</div>
 				</div>
+				<div className="webcam-box" onClick={createWalletTestFromFace}>
+					<div className="title">Test of create wallet from recognizing face</div>
+				</div>
 				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} />
 			</div>
 			<div className={current == "dashboard" ? "dashboard" : "none"}>
@@ -601,7 +618,7 @@ function App() {
 					<div className="line l1">{formatter.toLocaleString(balance)} CESS</div>
 					<div className="line l2">Balance</div>
 					<div className="line l3">
-						<span className="txt">{formatter.formatAddressLong(showAddressType == "CESS" ? accout.address : accout.evmAddress)}</span>
+						<span className="txt">{formatter.formatAddressLong(showAddressType == "CESS" ? accout.address : accout.evmAddress)} </span>
 						<label className="icon" onClick={() => onCopy(showAddressType == "CESS" ? accout.address : accout.evmAddress)}></label>
 					</div>
 					<div className={accountType == "evm" ? "line l4" : "none"} onClick={() => setShowAddressType(showAddressType == "CESS" ? "EVM" : "CESS")}>
@@ -611,6 +628,10 @@ function App() {
 					<div className={accountType == "polkdot" ? "line l4" : "none"} onClick={() => setShowAddressType(showAddressType == "CESS" ? "EVM" : "CESS")}>
 						<label className="icon"></label>
 						<span className="txt">Show the {showAddressType == "CESS" ? "Substrate" : "CESS"} address</span>
+					</div>
+					<div className={accountType == "face" ? "line l4" : "none"}>
+						<label className="icon"></label>
+						<span className="txt">Show the CESS address</span>
 					</div>
 				</div>
 				<div className="b2">
