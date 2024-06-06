@@ -28,6 +28,7 @@ const FaceCam = () => {
 	const canvasRef = useRef(null);
 	const intervalId = useRef(null);
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
+	const [isShowWebCam, setIsShowWebCam] = useState(false);
 	const { resolution, WebcamStarted, setWebcamStarted, isDetected, setIsDetected, setWebCamRef, WebCamRef, setCameraActiveType, CameraActiveType } = useWebcamContext();
 	let MainWidth = resolution.width;
 	const width = window && window?.innerWidth;
@@ -64,30 +65,30 @@ const FaceCam = () => {
 
 	const handleWebcamStream = async () => {
 		if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-		  setWebCamRef(webcamRef.current)
-		  const video = webcamRef.current.video;
-		  const videoWidth = webcamRef.current.video.videoWidth;
-		  const videoHeight = webcamRef.current.video.videoHeight;
-		  webcamRef.current.video.width = videoWidth;
-		  webcamRef.current.video.height = videoHeight;
-		  canvasRef.current.width = videoWidth;
-		  canvasRef.current.height = videoHeight;
-		  startFaceDetection(video, videoWidth, videoHeight)
+			setWebCamRef(webcamRef.current);
+			const video = webcamRef.current.video;
+			const videoWidth = webcamRef.current.video.videoWidth;
+			const videoHeight = webcamRef.current.video.videoHeight;
+			webcamRef.current.video.width = videoWidth;
+			webcamRef.current.video.height = videoHeight;
+			canvasRef.current.width = videoWidth;
+			canvasRef.current.height = videoHeight;
+			startFaceDetection(video, videoWidth, videoHeight);
 		}
-	  };
+	};
 
 	const startFaceDetection = (video, videoWidth, videoHeight) => {
-		console.log('detection');
+		console.log("detection");
 		const context = canvasRef.current.getContext("2d");
 		intervalId.current = requestAnimationFrame(
 			_debounce(async function detect() {
 				const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions());
-				console.log('detection...');
+				console.log("detection...");
 				if (detection) {
-					console.log('detection true');
+					console.log("detection true");
 
 					setIsDetected(true);
-					
+
 					if (canvasRef.current.width > 0 && canvasRef.current.height > 0) {
 						const resizedDetections = faceapi.resizeResults(detection, {
 							width: videoWidth,
@@ -102,16 +103,16 @@ const FaceCam = () => {
 		);
 	};
 
-	const stopCamera =  () => {
-		let stream = webcamRef.current.video.srcObject;
-		const tracks = stream.getTracks();
-		
-		tracks.forEach(track => track.stop());
-		webcamRef.current.video.srcObject = null;
+	// const stopCamera =  () => {
+	// 	let stream = webcamRef.current.video.srcObject;
+	// 	const tracks = stream.getTracks();
 
-		// setWebcamStarted(false);
-		setIsDetected(false)
-	};
+	// 	tracks.forEach(track => track.stop());
+	// 	webcamRef.current.video.srcObject = null;
+
+	// 	// setWebcamStarted(false);
+	// 	setIsDetected(false)
+	// };
 
 	const stopFaceDetection = () => {
 		if (intervalId.current) {
@@ -121,15 +122,28 @@ const FaceCam = () => {
 
 	const verifyWallet = async () => {
 		setCameraActiveType(2);
-
-	}
-
-	const createWallet = async () => {
-		setCameraActiveType(1);
-		setWebcamStarted(true);
-		
 	};
 
+	const createWallet = () => {
+		setCameraActiveType(1);
+		// setWebcamStarted(true);
+		setIsShowWebCam(true);
+	};
+
+	const stopCamera = () => {
+		setIsShowWebCam(false);
+		let stream = webcamRef.current.video.srcObject;
+		const tracks = stream.getTracks();
+
+		tracks.forEach(track => track.stop());
+		webcamRef.current.video.srcObject = null;
+
+		const context = canvasRef.current.getContext("2d");
+		setWebcamStarted(false);
+		setTimeout(() => {
+			context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+		}, 1000);
+	};
 	const verifyUser = async () => {
 		if (processingMode > 0) {
 			return;
@@ -137,7 +151,6 @@ const FaceCam = () => {
 		if (!WebcamStarted) setWebcamStarted(true);
 		processingStart(2);
 	};
-
 
 	const processingStart = mode => {
 		processingMode = mode;
@@ -151,21 +164,20 @@ const FaceCam = () => {
 	};
 
 	useEffect(() => {
-		console.log('webcarmstarted', WebcamStarted);
+		console.log("webcarmstarted", WebcamStarted);
 		if (!WebcamStarted) {
 			stopFaceDetection();
-		}  else {
+		} else {
 		}
-		
 	}, [WebcamStarted]);
 
 	useEffect(() => {
 		loadModels();
 	}, []);
 
-
 	return (
 		<div style={{ margin: "auto", position: "absolute", top: 0, height: "100%" }}>
+			{isShowWebCam ? (
 				<Webcam
 					audio={false}
 					height={resolution.height}
@@ -175,23 +187,26 @@ const FaceCam = () => {
 					onLoadedMetadata={handleWebcamStream}
 					ref={webcamRef}
 				/>
-				
-			 <AnimationWrapper>
+			) : (
+				<></>
+			)}
+
+			<AnimationWrapper>
 				<Col xs={24} sm={18}>
 					<ReactBodymovin options={bodymovinOptions} />
 				</Col>
 				<canvas style={View} ref={canvasRef} />
 			</AnimationWrapper>
 			<Row>
-				{/* <Col>
+				<Col>
 					<Button onClick={createWallet}>create wallet from face recognizing</Button>
-				</Col> */}
-				{/* <Col>
+				</Col>
+				<Col>
 					<Button onClick={verifyUser}>verify</Button>
 				</Col>
 				<Col>
 					<Button onClick={stopCamera}>stop</Button>
-				</Col> */}
+				</Col>
 			</Row>
 		</div>
 	);

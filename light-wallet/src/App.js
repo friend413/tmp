@@ -59,6 +59,7 @@ function App() {
 	const [available, setAvailable] = useState(0);
 	const [staking, setStaking] = useState(0);
 	const [nominate, setNominate] = useState(0);
+	const [cessAddressFromFace, setCessAddressFromFace] = useState("");
 
 	const [showCustomRPC, setShowCustomRPC] = useState(false);
 	const [customRPC, setCustomRPC] = useState("");
@@ -232,7 +233,7 @@ function App() {
 		}
 	};
 
-	const createWalletTestFromFace = () => {
+	const createWalletTestFromFace = addr => {
 		let addrFromFace = "cx000000000000000000";
 		let subBalanceVal = 12321312312;
 		let accounts = {};
@@ -449,7 +450,7 @@ function App() {
 		let ret = "";
 		try {
 			setLoading("signature");
-			if (accountType == "polkdot") {
+			if (accountType == "polkdot" || accountType == "face") {
 				ret = await sdk.signAndSend(accout.address, extrinsic, subState);
 			} else {
 				const result = await signAndSendEvm(extrinsic, window.api, walletClient, mappingAccount);
@@ -515,7 +516,7 @@ function App() {
 	};
 
 	const handleModalOpen = () => {
-		setWebcamStarted(true);
+		// setWebcamStarted(true);
 		setIsWebCamModalOpen(true);
 	};
 	const handleModalClose = () => {
@@ -532,6 +533,10 @@ function App() {
 	const onPlay = () => {
 		return "";
 	};
+
+	// const setCessAddr = (addr) => {
+	// 	setCessAddressFromFace(addr);
+	// }
 
 	return (
 		<div className="App">
@@ -607,10 +612,10 @@ function App() {
 				<div className="webcam-box" onClick={handleModalOpen}>
 					<div className="title">create wallet from recognizing face</div>
 				</div>
-				<div className="webcam-box" onClick={createWalletTestFromFace}>
+				<div className="webcam-box">
 					<div className="title">Test of create wallet from recognizing face</div>
 				</div>
-				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} />
+				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} setCessAddr={createWalletTestFromFace} />
 			</div>
 			<div className={current == "dashboard" ? "dashboard" : "none"}>
 				<div className="b1">
