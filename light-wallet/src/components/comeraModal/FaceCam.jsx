@@ -7,6 +7,8 @@ import _debounce from "lodash/debounce";
 import ReactBodymovin from "react-bodymovin";
 import animation from "@/utils/data/bodymovin-animation.json";
 import { AnimationWrapper } from "./cam.style";
+import * as antdHelper from "@/utils/antd-helper";
+import { Notification } from "@/components/Notification";
 
 import { Row, Col } from "antd";
 import { useWebcamContext } from "@/hooks/useWebcam";
@@ -29,7 +31,8 @@ const FaceCam = () => {
 	const intervalId = useRef(null);
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
 	const [isShowWebCam, setIsShowWebCam] = useState(false);
-	const { resolution, WebcamStarted, setWebcamStarted, isDetected, setIsDetected, setWebCamRef, WebCamRef, setCameraActiveType, CameraActiveType } = useWebcamContext();
+	const [CameraActiveType, setCameraActiveType] = useState(0);
+	const { resolution, WebcamStarted, setWebcamStarted, isDetected, setIsDetected, setWebCamRef, WebCamRef } = useWebcamContext();
 	let MainWidth = resolution.width;
 	const width = window && window?.innerWidth;
 	let View = { position: "absolute" };
@@ -73,7 +76,9 @@ const FaceCam = () => {
 			webcamRef.current.video.height = videoHeight;
 			canvasRef.current.width = videoWidth;
 			canvasRef.current.height = videoHeight;
-			startFaceDetection(video, videoWidth, videoHeight);
+			setTimeout(() => {
+				startFaceDetection(video, videoWidth, videoHeight);
+			}, 1500);
 		}
 	};
 
@@ -83,10 +88,7 @@ const FaceCam = () => {
 		intervalId.current = requestAnimationFrame(
 			_debounce(async function detect() {
 				const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions());
-				console.log("detection...");
 				if (detection) {
-					console.log("detection true");
-
 					setIsDetected(true);
 
 					if (canvasRef.current.width > 0 && canvasRef.current.height > 0) {
@@ -103,35 +105,23 @@ const FaceCam = () => {
 		);
 	};
 
-	// const stopCamera =  () => {
-	// 	let stream = webcamRef.current.video.srcObject;
-	// 	const tracks = stream.getTracks();
-
-	// 	tracks.forEach(track => track.stop());
-	// 	webcamRef.current.video.srcObject = null;
-
-	// 	// setWebcamStarted(false);
-	// 	setIsDetected(false)
-	// };
-
 	const stopFaceDetection = () => {
 		if (intervalId.current) {
 			cancelAnimationFrame(intervalId.current);
 		}
 	};
 
-	const verifyWallet = async () => {
+	const verifyUser = async () => {
 		setCameraActiveType(2);
+		setIsDetected(false);
 	};
 
 	const createWallet = () => {
+		setIsDetected(false);
 		setCameraActiveType(1);
-		// setWebcamStarted(true);
-		setIsShowWebCam(true);
 	};
 
 	const stopCamera = () => {
-		setIsShowWebCam(false);
 		let stream = webcamRef.current.video.srcObject;
 		const tracks = stream.getTracks();
 
@@ -139,34 +129,124 @@ const FaceCam = () => {
 		webcamRef.current.video.srcObject = null;
 
 		const context = canvasRef.current.getContext("2d");
-		setWebcamStarted(false);
 		setTimeout(() => {
 			context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 		}, 1000);
+		setCameraActiveType(0);
 	};
-	const verifyUser = async () => {
-		if (processingMode > 0) {
-			return;
-		}
-		if (!WebcamStarted) setWebcamStarted(true);
-		processingStart(2);
-	};
+	const intervalTime = 3000;
+	const enroll = () => {
+		console.log("call create wallet func");
+		// antdHelper.alertError(msg);
+		// antdHelper.notiOK("Logout success.");
 
-	const processingStart = mode => {
-		processingMode = mode;
-		backendprocessing = 1;
-		processingCount = 0;
-		livenssCount = 0;
-		prevRecogName = "";
-		prevLiveness = 0;
-		processingStartTime = new Date().getTime() / 1000;
-		console.log("processingMode", processingMode);
+		const imgSrc = WebCamRef.getScreenshot();
+		axios
+			.post(process.env.REACT_APP_SERVER_URL + "/create_wallet", {
+				image: imgSrc
+			})
+			.then(res => {
+				console.log("res", res);
+				if (res.status == 200) {
+					const resStateText = res.data.status;
+					if (resStateText == "Success") {
+						antdHelper.notiOK("Face Vector Read Successfully. Thanks for using Anon ID, no further action needed, verify at conference for access. ");
+
+						stopCamera();
+						// handleModalClose();
+						// setProcessStatus(3);
+						// setWebcamStarted(false);
+					} else if (resStateText == "Already Exist") {
+						antdHelper.noti("Face Vector Already Registered. Please Verify.");
+						stopCamera();
+
+						// setProcessStatus(3);
+					} else if (resStateText == "Move Closer") {
+						// Notification('warning', '', 'Please Move Closer!');
+						antdHelper.noti("Please Move Closer!");
+					} else if (resStateText == "Go Back") {
+						antdHelper.noti("Please Move Back!");
+					} else if (resStateText == "Liveness check failed") {
+						antdHelper.noti("Liveness check failed!");
+					} else if (resStateText == "Spoof") {
+					} else {
+						console.log("Error");
+					}
+
+					if (resStateText != "Success" && resStateText != "Already Exist") {
+						// setProcessStatus(2)
+						setTimeout(() => {
+							enroll();
+						}, intervalTime);
+					}
+				} else {
+					setTimeout(() => {
+						enroll();
+					}, intervalTime);
+				}
+			})
+			.catch(err => {
+				console.log("err", err);
+				antdHelper.noti("Server Error. Please contact dev team");
+
+				setTimeout(() => {
+					enroll();
+				}, intervalTime);
+			});
+	};
+	const verify = () => {
+		const imgSrc = WebCamRef.getScreenshot();
+		console.log("call get wallet func");
+		axios
+			.post(process.env.REACT_APP_SERVER_URL + "/get_wallet", {
+				image: imgSrc
+			})
+			.then(res => {
+				console.log("res", res);
+				if (res.status == 200) {
+					const resStateText = res.data.status;
+					if (resStateText == "Success") {
+						antdHelper.notiOK("Face Vector Verified' ");
+						debugger;
+						console.log("jwt token", res.data.token);
+						setCessAddr(res.data.address);
+						handleModalClose();
+					} else if (resStateText == "No Users") {
+						antdHelper.noti("info", "", "Face Vector not Registered. Please enroll.");
+					} else if (resStateText == "Move Closer") {
+						antdHelper.noti("Please Move Closer!");
+					} else if (resStateText == "Go Back") {
+						antdHelper.noti("Please Move Back!");
+					} else {
+						antdHelper.noti("Error");
+					}
+
+					if (resStateText != "Success") {
+						setTimeout(() => {
+							verify();
+						}, intervalTime);
+					}
+				} else {
+					setTimeout(() => {
+						verify();
+					}, intervalTime);
+				}
+			})
+			.catch(err => {
+				console.log("err", err);
+				antdHelper.noti("Server Error. Please contact dev team.");
+
+				setTimeout(() => {
+					verify();
+				}, intervalTime);
+			});
 	};
 
 	useEffect(() => {
 		console.log("webcarmstarted", WebcamStarted);
 		if (!WebcamStarted) {
 			stopFaceDetection();
+			setIsDetected(false);
 		} else {
 		}
 	}, [WebcamStarted]);
@@ -175,9 +255,34 @@ const FaceCam = () => {
 		loadModels();
 	}, []);
 
+	useEffect(() => {
+		if (CameraActiveType != 0) {
+			setWebcamStarted(true);
+		} else {
+			setWebcamStarted(false);
+		}
+		console.log("is Detected", isDetected);
+		if (isDetected) {
+			if (CameraActiveType == 1) {
+				enroll();
+			} else if (CameraActiveType == 2) {
+				verify();
+			} else {
+			}
+		}
+	}, [isDetected, CameraActiveType]);
+
+	useEffect(() => {
+		return () => {
+			stopFaceDetection();
+			setIsDetected(false);
+			stopCamera();
+		};
+	}, []);
 	return (
 		<div style={{ margin: "auto", position: "absolute", top: 0, height: "100%" }}>
-			{isShowWebCam ? (
+			{/* {isShowWebCam ? ( */}
+			{WebcamStarted ? (
 				<Webcam
 					audio={false}
 					height={resolution.height}
@@ -190,23 +295,22 @@ const FaceCam = () => {
 			) : (
 				<></>
 			)}
-
+			{/* ):(<></>)} */}
 			<AnimationWrapper>
-				<Col xs={24} sm={18}>
+				<Col xs={24} sm={18} style={{ opacity: 0.3 }}>
 					<ReactBodymovin options={bodymovinOptions} />
 				</Col>
 				<canvas style={View} ref={canvasRef} />
 			</AnimationWrapper>
 			<Row>
 				<Col>
-					<Button onClick={createWallet}>create wallet from face recognizing</Button>
+					<Button onClick={createWallet}>enroll</Button>
 				</Col>
 				<Col>
 					<Button onClick={verifyUser}>verify</Button>
 				</Col>
-				<Col>
-					<Button onClick={stopCamera}>stop</Button>
-				</Col>
+
+				<Col>{WebcamStarted ? <Button onClick={stopCamera}>stop</Button> : <></>}</Col>
 			</Row>
 		</div>
 	);
