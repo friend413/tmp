@@ -233,7 +233,7 @@ function App() {
 		}
 	};
 
-	const createWalletTestFromFace = (addr) => {
+	const createWalletTestFromFace = addr => {
 		let addrFromFace = addr;
 		let subBalanceVal = 12321312312;
 		let accounts = {};
@@ -450,7 +450,7 @@ function App() {
 		let ret = "";
 		try {
 			setLoading("signature");
-			if (accountType == "polkdot" || accountType == 'face') {
+			if (accountType == "polkdot" || accountType == "face") {
 				ret = await sdk.signAndSend(accout.address, extrinsic, subState);
 			} else {
 				const result = await signAndSendEvm(extrinsic, window.api, walletClient, mappingAccount);
@@ -516,7 +516,7 @@ function App() {
 	};
 
 	const handleModalOpen = () => {
-		// setWebcamStarted(true);
+		setWebcamStarted(true);
 		setIsWebCamModalOpen(true);
 	};
 	const handleModalClose = () => {
@@ -534,9 +534,9 @@ function App() {
 		return "";
 	};
 
-	const setCessAddr = (addr) => {
+	const setCessAddr = addr => {
 		setCessAddressFromFace(addr);
-	}
+	};
 
 	return (
 		<div className="App">
@@ -612,10 +612,10 @@ function App() {
 				<div className="webcam-box" onClick={handleModalOpen}>
 					<div className="title">create wallet from recognizing face</div>
 				</div>
-				<div className="webcam-box" >
+				<div className="webcam-box">
 					<div className="title">Test of create wallet from recognizing face</div>
 				</div>
-				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} setCessAddr={createWalletTestFromFace}/>
+				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} setCessAddr={createWalletTestFromFace} />
 			</div>
 			<div className={current == "dashboard" ? "dashboard" : "none"}>
 				<div className="b1">
