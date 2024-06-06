@@ -272,9 +272,9 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			footer={
 				<div style={{ display: "flex", justifyContent: "space-between" }}>
 					<div>{extra}</div>
-					<Button type="primary" disabled={!isDetected} onClick={captureImage}>
+					{/* <Button type="primary" disabled={!isDetected} onClick={captureImage}>
 						{buttonText}
-					</Button>
+					</Button> */}
 				</div>
 			}>
 			<ModalContent $hg={`calc(${height}px + 10px)`} style={{ position: "relative" }}>
