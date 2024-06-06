@@ -18,7 +18,6 @@ import * as antdHelper from "@/utils/antd-helper";
 const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen, handleModalClose, captureImage, extra = false, setCessAddr }) => {
 	// const { resolution, isDetected, WebCamRef} = useWebcamContext();
 	const { resolution, WebcamStarted, setWebcamStarted, isDetected, setIsDetected, setWebCamRef, WebCamRef } = useWebcamContext();
-
 	const { width, height } = resolution;
 
 	const webcamRef = useRef(null);
@@ -26,6 +25,9 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 	const intervalId = useRef(null);
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
 	const [isActiveButton, setIsActiveButton] = useState(false);
+	const [selectButton, setSelectButton] = useState(null);
+	const [isEnrollSpinActive, setEnrollSpinActive] = useState(false);
+	const [isVerifySpinActive, setVerifySpinActive] = useState(false);
 	let intervalEnroll = null;
 	let intervalVerify = null;
 	const intervalTime = 3000;
@@ -85,20 +87,6 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 		const context = canvasRef.current.getContext("2d");
 		intervalId.current = requestAnimationFrame(
 			_debounce(async function detect() {
-				// const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions());
-				// if (detection) {
-
-				// 	setIsDetected(true);
-
-				// 	if (canvasRef.current.width > 0 && canvasRef.current.height > 0) {
-				// 		const resizedDetections = faceapi.resizeResults(detection, {
-				// 			width: videoWidth,
-				// 			height: videoHeight
-				// 		});
-				// 		context.clearRect(0, 0, videoWidth, videoHeight);
-				// 		faceapi.draw.drawDetections(context, resizedDetections);
-				// 	}
-				// }
 				try {
 					const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions());
 
@@ -129,6 +117,9 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 	};
 
 	const enrollUser = () => {
+		setSelectButton("enroll");
+		setEnrollSpinActive(true);
+		setVerifySpinActive(false);
 		if (!WebcamStarted) {
 			setWebcamStarted(true);
 		}
@@ -149,11 +140,13 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 					const resStateText = res.data.status;
 					if (resStateText == "Success") {
 						antdHelper.notiOK("Face Vector Read Successfully. Thanks for using Anon ID, no further action needed, verify at conference for access. ");
-						stopCamera();
 						clearInterval(intervalEnroll);
+
+						setEnrollSpinActive(false);
 					} else if (resStateText == "Already Exist") {
 						antdHelper.noti("Face Vector Already Registered. Please Verify.");
 						clearInterval(intervalEnroll);
+						setEnrollSpinActive(false);
 					} else if (resStateText == "Move Closer") {
 						antdHelper.noti("Please Move Closer!");
 					} else if (resStateText == "Go Back") {
@@ -191,6 +184,10 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 	};
 
 	const verifyUser = async () => {
+		setSelectButton("verify");
+		setVerifySpinActive(true);
+		setEnrollSpinActive(false);
+
 		if (!WebcamStarted) {
 			setWebcamStarted(true);
 		}
@@ -202,7 +199,6 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 
 	const verifyRequest = () => {
 		const imgSrc = WebCamRef.getScreenshot();
-		console.log("call get wallet func");
 		Axios.post(process.env.REACT_APP_SERVER_URL + "/get_wallet", {
 			image: imgSrc
 		})
@@ -211,11 +207,11 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 				if (res.status == 200) {
 					const resStateText = res.data.status;
 					if (resStateText == "Success") {
-						antdHelper.notiOK("Face Vector Verified' ");
-						console.log("jwt token", res.data.token);
+						antdHelper.notiOK("Face Vector verified Successfully.");
 						clearInterval(intervalVerify);
 						setCessAddr(res.data.address);
-						handleClose();
+						setVerifySpinActive(false);
+						_handleModalClose();
 					} else if (resStateText == "No Users") {
 						antdHelper.noti("info", "", "Face Vector not Registered. Please enroll.");
 						// setCameraCaptureStart(true);
@@ -235,8 +231,9 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			});
 	};
 
-	const handleClose = () => {
+	const _handleModalClose = () => {
 		stopCamera();
+		setIsActiveButton("");
 		handleModalClose();
 	};
 
@@ -246,6 +243,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			clearInterval(intervalVerify);
 		};
 	}, []);
+
 	useEffect(() => {
 		console.log("webcarmstarted", WebcamStarted);
 		if (!WebcamStarted) {
@@ -270,7 +268,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			open={isModalOpen}
 			centered
 			width={`calc(${width}px + 45px)`}
-			onCancel={handleClose}
+			onCancel={_handleModalClose}
 			footer={
 				<div style={{ display: "flex", justifyContent: "space-between" }}>
 					<div>{extra}</div>
@@ -286,7 +284,6 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 					</SpinWrapper>
 				)}
 				<div style={{ margin: "auto", position: "absolute", top: 0, height: "100%" }}>
-					{/* {isShowWebCam ? ( */}
 					{WebcamStarted ? (
 						<Webcam
 							audio={false}
@@ -300,7 +297,6 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 					) : (
 						<></>
 					)}
-					{/* ):(<></>)} */}
 					<AnimationWrapper>
 						<Col xs={24} sm={18} style={{ opacity: 0.3 }}>
 							<ReactBodymovin options={bodymovinOptions} />
@@ -310,13 +306,17 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 					{isActiveButton ? (
 						<Row>
 							<Col>
-								<Button onClick={enrollUser}>enroll</Button>
+								<Button onClick={enrollUser} className={`${selectButton == "enroll" ? "active" : ""} camera-button`}>
+									enroll
+									<Spin spinning={isEnrollSpinActive} size="small" style={{ marginLeft: "10px" }}></Spin>
+								</Button>
 							</Col>
-							<Col>
-								<Button onClick={verifyUser}>verify</Button>
+							<Col style={{ marginLeft: "10px" }}>
+								<Button onClick={verifyUser} className={`${selectButton == "verify" ? "active" : ""} camera-button`}>
+									verify
+									<Spin spinning={isVerifySpinActive} size="small" style={{ marginLeft: "10px" }}></Spin>
+								</Button>
 							</Col>
-
-							<Col>{WebcamStarted ? <Button onClick={stopCamera}>stop</Button> : <></>}</Col>
 						</Row>
 					) : (
 						<></>
