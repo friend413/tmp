@@ -67,6 +67,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 	};
 
 	const handleWebcamStream = async () => {
+		console.log("handlewebcamStream.................");
 		if (webcamRef.current && webcamRef.current.video.readyState === 4) {
 			setWebCamRef(webcamRef.current);
 			const video = webcamRef.current.video;
@@ -164,7 +165,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			})
 			.catch(err => {
 				console.log("err", err);
-				antdHelper.noti("Server Error. Please contact dev team1111111111111111");
+				// antdHelper.noti('Server Error. Please contact dev team1111111111111111');
 			});
 	};
 	const stopCamera = () => {
@@ -175,12 +176,12 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 		webcamRef.current.video.srcObject = null;
 
 		const context = canvasRef.current.getContext("2d");
-		setTimeout(() => {
-			context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-		}, 1000);
 
 		setIsDetected(false);
 		setWebcamStarted(false);
+		// setTimeout(() => {
+		context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+		// }, 1000);
 	};
 
 	const verifyUser = async () => {
@@ -227,7 +228,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			})
 			.catch(err => {
 				console.log("err", err);
-				antdHelper.noti("Server Error. Please contact dev team2222222222222.");
+				// antdHelper.noti('Server Error. Please contact dev team2222222222222.');
 			});
 	};
 
@@ -255,6 +256,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 
 	useEffect(() => {
 		loadModels();
+		setWebcamStarted(true);
 	}, []);
 
 	useEffect(() => {
@@ -262,7 +264,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			setIsActiveButton(true);
 		}, intervalTime);
 	}, [isDetected]);
-	return (
+	return WebcamStarted ? (
 		<Modal
 			title={title}
 			open={isModalOpen}
@@ -272,9 +274,9 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 			footer={
 				<div style={{ display: "flex", justifyContent: "space-between" }}>
 					<div>{extra}</div>
-					{/* <Button type="primary" disabled={!isDetected} onClick={captureImage}>
+					<Button type="primary" disabled={!isDetected} onClick={captureImage}>
 						{buttonText}
-					</Button> */}
+					</Button>
 				</div>
 			}>
 			<ModalContent $hg={`calc(${height}px + 10px)`} style={{ position: "relative" }}>
@@ -284,19 +286,19 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 					</SpinWrapper>
 				)}
 				<div style={{ margin: "auto", position: "absolute", top: 0, height: "100%" }}>
-					{WebcamStarted ? (
-						<Webcam
-							audio={false}
-							height={resolution.height}
-							width={MainWidth}
-							videoConstraints={{ width: MainWidth, height: resolution.height }}
-							style={View}
-							onLoadedMetadata={handleWebcamStream}
-							ref={webcamRef}
-						/>
-					) : (
-						<></>
-					)}
+					{/* {WebcamStarted ? ( */}
+					<Webcam
+						audio={false}
+						height={resolution.height}
+						width={MainWidth}
+						videoConstraints={{ width: MainWidth, height: resolution.height }}
+						style={View}
+						onLoadedMetadata={() => {
+							if (WebcamStarted) handleWebcamStream();
+						}}
+						ref={webcamRef}
+					/>
+					{/* ):(<></>)} */}
 					<AnimationWrapper>
 						<Col xs={24} sm={18} style={{ opacity: 0.3 }}>
 							<ReactBodymovin options={bodymovinOptions} />
@@ -324,6 +326,8 @@ const CamModal = ({ title = "Capture face", buttonText = "Capture", isModalOpen,
 				</div>
 			</ModalContent>
 		</Modal>
+	) : (
+		<></>
 	);
 };
 export default CamModal;
