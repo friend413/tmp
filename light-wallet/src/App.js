@@ -234,7 +234,7 @@ function App() {
 	};
 
 	const createWalletTestFromFace = addr => {
-		let addrFromFace = "cx000000000000000000";
+		let addrFromFace = addr;
 		let subBalanceVal = 12321312312;
 		let accounts = {};
 		let acc = {};
@@ -516,7 +516,7 @@ function App() {
 	};
 
 	const handleModalOpen = () => {
-		// setWebcamStarted(true);
+		setWebcamStarted(true);
 		setIsWebCamModalOpen(true);
 	};
 	const handleModalClose = () => {
@@ -534,9 +534,9 @@ function App() {
 		return "";
 	};
 
-	// const setCessAddr = (addr) => {
-	// 	setCessAddressFromFace(addr);
-	// }
+	const setCessAddr = addr => {
+		setCessAddressFromFace(addr);
+	};
 
 	return (
 		<div className="App">
@@ -612,9 +612,6 @@ function App() {
 				<div className="webcam-box" onClick={handleModalOpen}>
 					<div className="title">create wallet from recognizing face</div>
 				</div>
-				<div className="webcam-box">
-					<div className="title">Test of create wallet from recognizing face</div>
-				</div>
 				<CamModal isModalOpen={isWebCamModalOpen} handleModalClose={handleModalClose} captureImage={captureImage} setCessAddr={createWalletTestFromFace} />
 			</div>
 			<div className={current == "dashboard" ? "dashboard" : "none"}>
@@ -634,10 +631,10 @@ function App() {
 						<label className="icon"></label>
 						<span className="txt">Show the {showAddressType == "CESS" ? "Substrate" : "CESS"} address</span>
 					</div>
-					<div className={accountType == "face" ? "line l4" : "none"}>
+					{/* <div className={accountType == "face" ? "line l4" : "none"}>
 						<label className="icon"></label>
 						<span className="txt">Show the CESS address</span>
-					</div>
+					</div> */}
 				</div>
 				<div className="b2">
 					<div className="btn-box btn1" onClick={() => onClick("Send")}>
