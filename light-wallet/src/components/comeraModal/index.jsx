@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 
-import { Modal, Button, Spin , Row, Col } from "antd";
+import { Modal, Button, Spin , Row, Col, Input } from "antd";
 import Axios from 'axios';
 // import FaceCam from "./FaceCam";
 import { useWebcamContext } from "@/hooks/useWebcam";
@@ -26,10 +26,13 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
 	const [isActiveButton, setIsActiveButton] = useState(false);
 	const [selectButton, setSelectButton] = useState(null);
+	const [recoveryKey, setRecoveryKey] = useState("");
 	const [isEnrollSpinActive, setEnrollSpinActive] = useState(false);
 	const [isVerifySpinActive, setVerifySpinActive] = useState(false);
+	const [isRecoverSpinActive, setRecoverSpinActive] = useState(false);
 	var intervalEnroll = null;
 	var intervalVerify = null;
+	var intervalRecover = null;
 	const intervalTime = 3000;
 	
 	let MainWidth = resolution.width;
@@ -124,6 +127,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 		setSelectButton('enroll');
 		setEnrollSpinActive(true);
 		setVerifySpinActive(false);
+		setRecoverSpinActive(false);
 		if(!WebcamStarted) {
 			setWebcamStarted(true);
 		}
@@ -144,6 +148,13 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 					clearInterval(intervalEnroll);
 					
 					setEnrollSpinActive(false);
+				} else if (resStateText == "Error" ) {
+					if (res.data.msg.includes("Dialog is closed")) {
+						clearInterval(intervalEnroll);
+						setEnrollSpinActive(false);
+						return ;
+					}
+					antdHelper.noti(res.data.msg);
 				} else if (resStateText == 'Already Exist') {
 					antdHelper.noti('Face Vector Already Registered. Please Verify.');
 					clearInterval(intervalEnroll);
@@ -158,7 +169,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 				} else if (resStateText == 'Face is too large'){
 					antdHelper.noti('Face is too large.');
 				} else if (resStateText == 'Spoof'){
-
+					antdHelper.noti('Spoof Face');
 				} else {
 					console.log('Error');
 				}
@@ -166,8 +177,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 			}
 		}).catch(err=>{
 			console.log('err', err);
-			// antdHelper.noti('Server Error. Please contact dev team1111111111111111');
-			
+			antdHelper.noti('Server Error. Please contact dev team');
 		})
 
 	}
@@ -192,6 +202,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 		setSelectButton('verify');
 		setVerifySpinActive(true);
 		setEnrollSpinActive(false);
+		setRecoverSpinActive(false);
 
 		if(!WebcamStarted) {
 			setWebcamStarted(true);
@@ -221,16 +232,87 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 					antdHelper.noti('Please Move Closer!');
 				} else if (resStateText == 'Go Back') {
 					antdHelper.noti('Please Move Back!');						
+				} else if (resStateText == "Error" ) {
+					if (res.data.msg.includes("Dialog is closed")) {
+						clearInterval(intervalVerify);
+						setVerifySpinActive(false);
+						return ;
+					}
+					antdHelper.noti(res.data.msg);
 				} else {
-					// antdHelper.noti('Error');						
+					antdHelper.noti('Error');						
 				}
 			} else {				
 			}
 		}).catch(err=>{
 			console.log('err', err);
-			// antdHelper.noti('Server Error. Please contact dev team2222222222222.');		
-			
+			antdHelper.noti('Server Error. Please contact dev team.');		
 		})
+	}
+
+	const recoverUser = () => {
+		if( recoveryKey.length == 0) {
+			antdHelper.noti('Please Input Recovery Key!');						
+			return ;
+		}
+		setSelectButton('recover');
+		setRecoverSpinActive(true);
+		setEnrollSpinActive(false);
+		setVerifySpinActive(false);
+		if(!WebcamStarted) {
+			setWebcamStarted(true);
+		}
+		intervalEnroll = setInterval(() => { recoverRequest() }, intervalTime);
+	};
+
+	const recoverRequest = () => {
+		console.log('call create wallet func');
+		const imgSrc = WebCamRef.getScreenshot();
+		Axios.post(process.env.REACT_APP_SERVER_URL+"/recover_wallet", {
+			image: imgSrc,
+			recovery_key: recoveryKey
+		}).then(res=>{
+			console.log('res', res);
+			if (res.status == 200) {
+				const resStateText = res.data.status;
+				if (resStateText == 'Success') {
+					antdHelper.notiOK("User recovered successfully");
+					clearInterval(intervalRecover);
+					
+					setRecoverSpinActive(false);
+				} else if (resStateText == 'Unregistered User') {
+					antdHelper.noti(res.data.msg);
+					clearInterval(intervalRecover);
+					setRecoverSpinActive(false);
+
+				} else if (resStateText == "Error" ) {
+					if (res.data.msg.includes("Dialog is closed")) {
+						clearInterval(intervalRecover);
+						setRecoverSpinActive(false);
+						return ;
+					}
+					antdHelper.noti(res.data.msg);
+				} else if (resStateText == 'Move Closer') {
+					antdHelper.noti('Please Move Closer!');
+				} else if (resStateText == 'Go Back') {
+					antdHelper.noti('Please Move Back!');
+				} else if (resStateText == 'Liveness check failed') {
+					antdHelper.noti('Liveness check failed!');
+				} else if (resStateText == 'Face is too large'){
+					antdHelper.noti('Face is too large.');
+				} else if (resStateText == 'Spoof'){
+					antdHelper.noti('Spoof');
+				} else {
+					console.log('Error');
+				}
+			} else {		
+				antdHelper.noti('Backend Error: Not responding correctly');
+			}
+		}).catch(err=>{
+			console.log('err', err);
+			antdHelper.noti('Server Error. Please contact dev team');
+		})
+
 	}
 
 	const _handleModalClose = () => {
@@ -239,7 +321,6 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 		handleModalClose();
 		setEnrollSpinActive(false);
 		setVerifySpinActive(false);
-		debugger;
 		if (intervalVerify != null)
 			clearInterval(intervalVerify)
 
@@ -251,6 +332,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 		return () => {
 			clearInterval(intervalEnroll);
 			clearInterval(intervalVerify);
+			clearInterval(intervalRecover);
 		}
 	},[])
 
@@ -296,42 +378,49 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 					</SpinWrapper>
 				)}
 				<div style={{ margin: "auto", position: "absolute", top: 0, height: "100%" }}>
-			{/* {WebcamStarted ? ( */}
-				<Webcam
-					audio={false}
-					height={resolution.height}
-					width={MainWidth}
-					videoConstraints={{ width: MainWidth, height: resolution.height }}
-					style={View}
-					onLoadedMetadata={()=>{
-						if (WebcamStarted)
-							handleWebcamStream()
-					}}
-					ref={webcamRef}
-				/>
-			{/* ):(<></>)} */}
-			 <AnimationWrapper>
-				<Col xs={24} sm={18} style={{opacity:.3}}>
-					<ReactBodymovin options={bodymovinOptions}/>
-				</Col>
-				<canvas style={View} ref={canvasRef}/>
-			</AnimationWrapper>
-			{/* {isActiveButton ? ( */}
-				<Row>
-				<Col>
-					<Button onClick={enrollUser} className={`${selectButton =='enroll' ? 'active':''} camera-button`}>enroll
-						<Spin spinning={isEnrollSpinActive} size="small" style={{marginLeft:'10px'}}></Spin>
-					</Button>
-				</Col> 
-				<Col style={{marginLeft:'10px'}}>
-					<Button onClick={verifyUser} className={`${selectButton =='verify'?'active':''} camera-button`}>verify
-						<Spin spinning={isVerifySpinActive} size="small" style={{marginLeft:'10px'}}></Spin>
-					</Button>
-				</Col>
-			</Row>
-			{/* ):(<></>)} */}
-			
-		</div>
+					{/* {WebcamStarted ? ( */}
+					<Webcam
+						audio={false}
+						height={resolution.height}
+						width={MainWidth}
+						videoConstraints={{ width: MainWidth, height: resolution.height }}
+						style={View}
+						onLoadedMetadata={()=>{
+							if (WebcamStarted)
+								handleWebcamStream()
+						}}
+						ref={webcamRef}
+					/>
+					{/* ):(<></>)} */}
+					<AnimationWrapper>
+						<Col xs={24} sm={18} style={{opacity:.3}}>
+							<ReactBodymovin options={bodymovinOptions}/>
+						</Col>
+						<canvas style={View} ref={canvasRef}/>
+					</AnimationWrapper>
+					{/* {isActiveButton ? ( */}
+					<Row>
+						<Col>
+							<Button onClick={enrollUser} className={`${selectButton =='enroll' ? 'active':''} camera-button`}>enroll
+								<Spin spinning={isEnrollSpinActive} size="small" style={{marginLeft:'10px'}}></Spin>
+							</Button>
+						</Col> 
+						<Col style={{marginLeft:'10px'}}>
+							<Button onClick={verifyUser} className={`${selectButton =='verify'?'active':''} camera-button`}>verify
+								<Spin spinning={isVerifySpinActive} size="small" style={{marginLeft:'10px'}}></Spin>
+							</Button>
+						</Col>
+						<Col style={{marginLeft:'10px'}}>
+							<Button onClick={recoverUser} className={`${selectButton =='recover'?'active':''} camera-button`}>recover
+								<Spin spinning={isRecoverSpinActive} size="small" style={{marginLeft:'10px'}}></Spin>
+							</Button>
+						</Col>
+						<Col>
+							<Input placeholder="Enter your recover key" value={recoveryKey} onChange={(e) => setRecoveryKey(e.target.value)}/>
+						</Col>
+					</Row>
+					{/* ):(<></>)} */}			
+				</div>
 			</ModalContent>
 		</Modal>
 	):(<></>);
