@@ -516,7 +516,7 @@ function App() {
 	};
 
 	const handleModalOpen = () => {
-		// setWebcamStarted(true);
+		setWebcamStarted(true);
 		setIsWebCamModalOpen(true);
 	};
 	const handleModalClose = () => {
