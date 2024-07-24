@@ -239,6 +239,11 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 						return ;
 					}
 					antdHelper.noti(res.data.msg);
+					if (res.data.msg == 'DB sync error') {
+						clearInterval(intervalVerify);
+						setVerifySpinActive(false);
+						return ;
+					}
 				} else {
 					antdHelper.noti('Error');						
 				}
@@ -246,7 +251,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 			}
 		}).catch(err=>{
 			console.log('err', err);
-			antdHelper.noti('Server Error. Please contact dev team.');		
+			// antdHelper.noti('Server Error. Please contact dev team.');		
 		})
 	}
 
@@ -262,7 +267,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 		if(!WebcamStarted) {
 			setWebcamStarted(true);
 		}
-		intervalEnroll = setInterval(() => { recoverRequest() }, intervalTime);
+		intervalRecover = setInterval(() => { recoverRequest() }, intervalTime);
 	};
 
 	const recoverRequest = () => {
@@ -310,7 +315,7 @@ const CamModal = ({ title = "Capture face", buttonText = "Detected", isModalOpen
 			}
 		}).catch(err=>{
 			console.log('err', err);
-			antdHelper.noti('Server Error. Please contact dev team');
+			// antdHelper.noti('Server Error. Please contact dev team');
 		})
 
 	}
